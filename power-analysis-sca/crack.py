@@ -73,6 +73,11 @@ def powerAnalysisAttack(ptrace, c, n):
 
 
 def main():
+    """
+        Provide a "ptrace.trc" file that contains ptrace of decryption process
+        Also provide c and n (one by one) from stdin
+        m will be printed to stdout
+    """
     with open("ptrace.trc", "r") as inp:
         ptraceLst = list(map(float, inp.readlines()))
     c = int(input(), 16)
