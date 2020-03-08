@@ -1,15 +1,40 @@
 #!/usr/bin/env/python3
 
-import gmpy2 # TODO: verify
+import math
 
-def findKey(ptraceLst):
-    key = [] # exponent
+
+def findKey(ptrace):
+    """
+        * Finds decryption key (d) by checking the ptrace.
+        * Simply exploits the "exponentiation by squaring" (or square and multiply) implementation of decryption process
+        * If a only a square operation is done (during iteration over the bits of d)
+               then corresponding bit is 0
+               o/w (both square ana multiply operation) then the corresponding bit is 1 in d
+    :param ptrace: ptrace of decryption process as lst
+    :return: d
+    """
+    key = []  # exponent
+    freqs = [0] * 16
+    for rec in ptrace:
+        freqs[int(math.floor(rec))] += 1
+
+    pivot = -1
+    seenFirstRec = False
+    for i, freq in reversed(list(enumerate(freqs))):
+        if freq != 0:
+            if not seenFirstRec:
+                seenFirstRec = True
+        else:
+            if seenFirstRec:
+                pivot = i
+                break
+
     allHigherConsumptions = []
-    squareMultDuration = -1 # TODO: check hng
+    squareMultDuration = -1  # TODO: check if 125?
     tmpCnt = 0
     startCount = False
-    for rec in ptraceLst:
-        if rec > 8: # TODO: verify
+    for rec in ptrace:
+        if rec >= pivot:
             if not startCount:
                 startCount = True
             tmpCnt += 1
@@ -31,15 +56,18 @@ def findKey(ptraceLst):
     return ''.join(key)
 
 
-def powerAnalysisAttack(ptraceLst, c, n):
+def powerAnalysisAttack(ptrace, c, n):
     """
-
-    :param ptraceLst:
-    :param c:
-    :param n:
-    :return:
+        Exploits RSA implementation by conducting a power analysis on decryption process.
+            * Given c,n and ptrace of decryption process, this exploit tries to determine the decryption exponent (d)
+            by analyzing the power changes during decryption.
+            * After capturing d, m is decrypted easily as: m = c^d (mod n)
+    :param ptrace: ptrace of decryption process as lst
+    :param c: cipher text
+    :param n: modulus
+    :return: m (decrypted message)
     """
-    d = int(findKey(ptraceLst), 2)
+    d = int(findKey(ptrace), 2)
     m = pow(c, d, n)
     return m
 
