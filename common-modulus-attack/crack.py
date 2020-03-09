@@ -1,7 +1,5 @@
 #!/usr/bin/env/python3
 
-import gmpy2  # TODO: verify
-
 
 def extendedGcd(a, b):
     """
@@ -17,6 +15,59 @@ def extendedGcd(a, b):
     x = y1
     y = x1 - (a // b) * y1
     return gcd, x, y
+
+
+# def multiplicativeInverse(c2, n):
+#     """
+#     Returns multiplicative modulo inverse of c2 under N, if exists
+#     otherwise returns -1
+#     """
+#     for i in range(n):
+#         if (c2 * i) % n == 1:
+#             return i
+#     return -1
+
+
+def multiplicativeInverse(A, M):
+    """
+    Assumes that A and M are co-prime
+    Returns multiplicative modulo inverse of A under M
+    """
+    # Find gcd using Extended Euclid's Algorithm
+    gcd, x, y = extended_euclid_gcd(A, M)
+
+    # In case x is negative, we handle it by adding extra M
+    # Because we know that multiplicative inverse of A in range M lies
+    # in the range [0, M-1]
+    if x < 0:
+        x += M
+
+    return x
+
+
+def extended_euclid_gcd(a, b):
+    """
+    Returns a list `result` of size 3 where:
+    Referring to the equation ax + by = gcd(a, b)
+        result[0] is gcd(a, b)
+        result[1] is x
+        result[2] is y
+    """
+    s = 0
+    old_s = 1
+    t = 1
+    old_t = 0
+    r = b
+    old_r = a
+
+    while r != 0:
+        quotient = old_r // r  # In Python, // operator performs integer or floored division
+        # This is a pythonic way to swap numbers
+        # See the same part in C++ implementation below to know more
+        old_r, r = r, old_r - quotient * r
+        old_s, s = s, old_s - quotient * s
+        old_t, t = t, old_t - quotient * t
+    return [old_r, old_s, old_t]
 
 
 def commonModulusAttack(c1, c2, e1, e2, n):
@@ -37,7 +88,7 @@ def commonModulusAttack(c1, c2, e1, e2, n):
     :return: m (decrypted message)
     """
     gcd, x, y = extendedGcd(e1, e2)
-    z = gmpy2.invert(c2, n)
+    z = multiplicativeInverse(c2, n)
     return (pow(c1, x, n) * pow(z, int(-y), n)) % n
 
 

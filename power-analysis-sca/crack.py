@@ -3,6 +3,32 @@
 import math
 
 
+def findPivot(ptrace):
+    freqs = [0] * 16
+    for rec in ptrace:
+        freqs[int(math.floor(rec))] += 1
+    pivot = -1
+    seenFirstRec = False
+    sumFreq = 0
+    for i, freq in reversed(list(enumerate(freqs))):
+        if freq != 0:
+            sumFreq += freq
+            if not seenFirstRec:
+                seenFirstRec = True
+        else:
+            if seenFirstRec:
+                pivot = i + 1
+                break
+
+    if sumFreq % 25 != 0 or pivot == -1:
+        for j, reFrag in list(enumerate(freqs, start=pivot)):
+            sumFreq -= reFrag
+            if sumFreq % 25 == 0:
+                pivot = j
+                break
+    return pivot
+
+
 def findKey(ptrace):
     """
         * Finds decryption key (d) by checking the ptrace.
@@ -14,46 +40,32 @@ def findKey(ptrace):
     :return: d
     """
     key = []  # exponent
-    freqs = [0] * 16
-    for rec in ptrace:
-        freqs[int(math.floor(rec))] += 1
-
-    pivot = -1
-    seenFirstRec = False
-    for i, freq in reversed(list(enumerate(freqs))):
-        if freq != 0:
-            if not seenFirstRec:
-                seenFirstRec = True
-        else:
-            if seenFirstRec:
-                pivot = i
-                break
-
     allHigherConsumptions = []
-    squareMultDuration = -1  # TODO: check if 125?
     tmpCnt = 0
     startCount = False
-    for rec in ptrace:
-        if rec >= pivot:
-            if not startCount:
-                startCount = True
-            tmpCnt += 1
-        else:
-            if startCount:
-                if squareMultDuration == -1:
-                    squareMultDuration = tmpCnt
-                elif squareMultDuration < tmpCnt:
-                    squareMultDuration = tmpCnt
-                allHigherConsumptions.append(tmpCnt)
-                tmpCnt = 0
-                startCount = False
+    pivot = findPivot(ptrace)
+    if pivot != -1:
+        for rec in ptrace:
+            if rec >= pivot:
+                if not startCount:
+                    startCount = True
+                tmpCnt += 1
+            else:
+                if startCount:
+                    if tmpCnt == 125 or tmpCnt == 75:
+                        allHigherConsumptions.append(tmpCnt)
+                    tmpCnt = 0
+                    startCount = False
 
-    for cnt in allHigherConsumptions:
-        if cnt == squareMultDuration:
-            key.append('1')
-        else:
-            key.append('0')
-    return ''.join(key)
+        for cnt in allHigherConsumptions:
+            if cnt == 125:
+                key.append('1')
+            elif cnt == 75:
+                key.append('0')
+        return ''.join(key)
+    else:
+        print("INVALID PIVOT DETECTED")
+        exit(1)
 
 
 def powerAnalysisAttack(ptrace, c, n):
