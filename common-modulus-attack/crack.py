@@ -3,71 +3,21 @@
 
 def extendedGcd(a, b):
     """
-    Extended Euclidean Algorithm that also returns x and y where gcd(a,b) = a * x + b * y
-    :param a: e1
-    :param b: e2
-    :return: (gcd, s, t)
+    Extended Euclidean Algorithm - gcd(a,b) = a * x + b * y
+        that returns x and y as well as the gcd value of the operands
+    :param a: first operand
+    :param b: second operand
+    :return: (gcd(a,b), x, y)
     """
-    if b == 0:
-        return a, 1, 0
-    d1, x1, y1 = extendedGcd(b, a % b)
-    gcd = d1
-    x = y1
-    y = x1 - (a // b) * y1
-    return gcd, x, y
-
-
-# def multiplicativeInverse(c2, n):
-#     """
-#     Returns multiplicative modulo inverse of c2 under N, if exists
-#     otherwise returns -1
-#     """
-#     for i in range(n):
-#         if (c2 * i) % n == 1:
-#             return i
-#     return -1
-
-
-def multiplicativeInverse(A, M):
-    """
-    Assumes that A and M are co-prime
-    Returns multiplicative modulo inverse of A under M
-    """
-    # Find gcd using Extended Euclid's Algorithm
-    gcd, x, y = extended_euclid_gcd(A, M)
-
-    # In case x is negative, we handle it by adding extra M
-    # Because we know that multiplicative inverse of A in range M lies
-    # in the range [0, M-1]
-    if x < 0:
-        x += M
-
-    return x
-
-
-def extended_euclid_gcd(a, b):
-    """
-    Returns a list `result` of size 3 where:
-    Referring to the equation ax + by = gcd(a, b)
-        result[0] is gcd(a, b)
-        result[1] is x
-        result[2] is y
-    """
-    s = 0
-    old_s = 1
-    t = 1
-    old_t = 0
-    r = b
-    old_r = a
-
-    while r != 0:
-        quotient = old_r // r  # In Python, // operator performs integer or floored division
-        # This is a pythonic way to swap numbers
-        # See the same part in C++ implementation below to know more
-        old_r, r = r, old_r - quotient * r
-        old_s, s = s, old_s - quotient * s
-        old_t, t = t, old_t - quotient * t
-    return [old_r, old_s, old_t]
+    res = [a, 1, 0]
+    tmpRes = [b, 0, 1]
+    while tmpRes[0] != 0:
+        # Swap temp with res, then update temp with newly calculated div accordingly #
+        div = res[0] // tmpRes[0]
+        res[0], tmpRes[0] = tmpRes[0], res[0] - (div * tmpRes[0])
+        res[1], tmpRes[1] = tmpRes[1], res[1] - (div * tmpRes[1])
+        res[2], tmpRes[2] = tmpRes[2], res[2] - (div * tmpRes[2])
+    return res
 
 
 def commonModulusAttack(c1, c2, e1, e2, n):
@@ -87,8 +37,10 @@ def commonModulusAttack(c1, c2, e1, e2, n):
     :param n: modulus
     :return: m (decrypted message)
     """
-    gcd, x, y = extendedGcd(e1, e2)
-    z = multiplicativeInverse(c2, n)
+    _, x, y = extendedGcd(e1, e2)
+    _, z, _ = extendedGcd(c2, n)
+    if z < 0:
+        z += n
     return (pow(c1, x, n) * pow(z, int(-y), n)) % n
 
 
